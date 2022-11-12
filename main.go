@@ -4,6 +4,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -24,6 +25,9 @@ import (
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/deroproject/derohe/walletapi/mnemonics"
 )
+
+//go:embed lookuptable
+var LOOKUP_TABLE []byte
 
 var WalletInstances = make(map[string]*walletapi.Wallet_Memory)
 
@@ -266,16 +270,30 @@ func WalletRegister(this js.Value, args []js.Value) interface{} {
 }
 
 func WalletGetBalance(this js.Value, args []js.Value) interface{} {
-	walletKey := args[0].String()
-	scId := args[1].String()
+	asyncKey := args[0].String()
+	walletKey := args[1].String()
+	scId := args[2].String()
 
 	walletInstance, err := getWallet(walletKey)
 	if err != nil {
 		return mapReturn(nil, err)
 	}
 
-	mb, _ := walletInstance.Get_Balance_scid(crypto.HashHexToHash(scId))
-	return mapReturn(mb, nil)
+	go func() {
+		result := map[string]interface{}{}
+		err := walletInstance.Sync_Wallet_Memory_With_Daemon_internal(crypto.HashHexToHash(scId))
+		if err != nil {
+			result["err"] = err.Error()
+		} else {
+			mb, lb := walletInstance.Get_Balance_scid(crypto.HashHexToHash(scId))
+			result["matureBalance"] = mb
+			result["lockedBalanace"] = lb
+		}
+
+		js.Global().Set(asyncKey, result)
+	}()
+
+	return mapReturn(nil, nil)
 }
 
 func WalletGetAddress(this js.Value, args []js.Value) interface{} {
@@ -502,14 +520,37 @@ func DecodeHexTransaction(this js.Value, args []js.Value) interface{} {
 	return mapReturn(string(data), nil)
 }
 
-func DaemonSetAddressAndInit(this js.Value, args []js.Value) interface{} {
-	daemonEndpoint := args[0].String()
-
-	walletapi.SetDaemonAddress(daemonEndpoint)
-	if !walletapi.Connected {
-		go walletapi.Keep_Connectivity()
-		walletapi.Initialize_LookupTable(1, 1<<16)
+func Initialize(this js.Value, args []js.Value) interface{} {
+	// instead of calculating the lookup table everytime
+	// its now embed in the wasm
+	var lookupTable walletapi.LookupTable
+	err := lookupTable.Deserialize(LOOKUP_TABLE)
+	if err != nil {
+		return mapReturn(nil, err)
 	}
+
+	walletapi.Balance_lookup_table = &lookupTable
+	//walletapi.Initialize_LookupTable(1, 1<<19)
+
+	go walletapi.Keep_Connectivity()
+
+	return mapReturn(nil, nil)
+}
+
+func DaemonSetAddress(this js.Value, args []js.Value) interface{} {
+	asyncKey := args[0].String()
+	daemonEndpoint := args[1].String()
+
+	go func() {
+		result := map[string]interface{}{}
+		walletapi.SetDaemonAddress(daemonEndpoint)
+		err := walletapi.Connect("")
+		if err != nil {
+			result["err"] = err.Error()
+		}
+
+		js.Global().Set(asyncKey, result)
+	}()
 
 	return mapReturn(nil, nil)
 }
@@ -525,6 +566,10 @@ func DaemonCall(this js.Value, args []js.Value) interface{} {
 		if err != nil {
 			return mapReturn(nil, err)
 		}
+	}
+
+	if !walletapi.Connected {
+		return mapReturn(nil, fmt.Errorf("walletapi not connected"))
 	}
 
 	go func() {
@@ -575,10 +620,11 @@ func main() {
 	js.Global().Set("WalletSendTransaction", js.FuncOf(WalletSendTransaction))
 	js.Global().Set("WalletRegister", js.FuncOf(WalletRegister)) // registration is slow - difficulty to high for browser
 
+	js.Global().Set("Initialize", js.FuncOf(Initialize))
 	js.Global().Set("DecodeHexTransaction", js.FuncOf(DecodeHexTransaction))
 	js.Global().Set("VerifyAddress", js.FuncOf(VerifyAddress))
 	js.Global().Set("CheckSeed", js.FuncOf(CheckSeed))
-	js.Global().Set("DaemonSetAddressAndInit", js.FuncOf(DaemonSetAddressAndInit))
+	js.Global().Set("DaemonSetAddress", js.FuncOf(DaemonSetAddress))
 	js.Global().Set("DaemonCall", js.FuncOf(DaemonCall))
 	js.Global().Set("DaemonGetTopoHeight", js.FuncOf(DaemonGetTopoHeight))
 

@@ -1,4 +1,4 @@
-replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20221108185131-27dbb2558f5a
+replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20221111221822-76ab16df5374
 
 module github.com/g45t345rt/dero-webwallet-wasm
 
