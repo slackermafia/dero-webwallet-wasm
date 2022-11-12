@@ -521,8 +521,24 @@ func DecodeHexTransaction(this js.Value, args []js.Value) interface{} {
 }
 
 func Initialize(this js.Value, args []js.Value) interface{} {
+	env := args[0].String()
+
+	switch env {
+	case "mainnet":
+		globals.Config = config.Mainnet
+		break
+	case "testnet":
+	case "simulator":
+	case "development":
+		globals.Config = config.Testnet
+		break
+	default:
+		return mapReturn(nil, fmt.Errorf("env [%s] does not exists.", env))
+	}
+
 	// instead of calculating the lookup table everytime
 	// its now embed in the wasm
+	// walletapi.Initialize_LookupTable(1, 1<<19)
 	var lookupTable walletapi.LookupTable
 	err := lookupTable.Deserialize(LOOKUP_TABLE)
 	if err != nil {
@@ -530,7 +546,6 @@ func Initialize(this js.Value, args []js.Value) interface{} {
 	}
 
 	walletapi.Balance_lookup_table = &lookupTable
-	//walletapi.Initialize_LookupTable(1, 1<<19)
 
 	go walletapi.Keep_Connectivity()
 
@@ -589,15 +604,6 @@ func DaemonCall(this js.Value, args []js.Value) interface{} {
 }
 
 func main() {
-	/*globals.Arguments = map[string]interface{}{}
-	globals.InitializeLog(os.Stdout, io.Discard)
-	debug.SetGCPercent(40)*/
-	//walletapi.Initialize_LookupTable(1, 1<<21)
-
-	globals.Config = config.Testnet
-	//globals.Arguments["--simulator"] = true
-	//globals.Arguments["--debug"] = true
-
 	globals.InitializeLog(os.Stdout, io.Discard)
 
 	js.Global().Set("CreateNewWallet", js.FuncOf(CreateNewWallet))
