@@ -414,6 +414,7 @@ func WalletTransfer(this js.Value, args []js.Value) interface{} {
 		} else {
 			result["txId"] = tx.GetHash().String()
 			result["txHex"] = hex.EncodeToString(tx.Serialize())
+			result["txFees"] = tx.Fees()
 		}
 
 		js.Global().Set(asyncKey, result)
