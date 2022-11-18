@@ -527,6 +527,7 @@ func DecodeHexTransaction(this js.Value, args []js.Value) interface{} {
 
 func Initialize(this js.Value, args []js.Value) interface{} {
 	env := args[0].String()
+	daemonEndpoint := args[1].String()
 
 	switch env {
 	case "mainnet":
@@ -550,6 +551,7 @@ func Initialize(this js.Value, args []js.Value) interface{} {
 
 	walletapi.Balance_lookup_table = &lookupTable
 
+	walletapi.SetDaemonAddress(daemonEndpoint)
 	go walletapi.Keep_Connectivity()
 
 	return mapReturn(nil, nil)
