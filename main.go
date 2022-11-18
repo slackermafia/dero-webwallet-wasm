@@ -74,6 +74,7 @@ func CreateNewWallet(this js.Value, args []js.Value) interface{} {
 		return mapReturn(nil, err)
 	}
 
+	wallet.SetNetwork(globals.IsMainnet())
 	walletInfo := getWalletInfo(wallet)
 	return mapReturn(walletInfo, nil)
 }
@@ -87,6 +88,7 @@ func RecoverWalletFromSeed(this js.Value, args []js.Value) interface{} {
 		return mapReturn(nil, err)
 	}
 
+	wallet.SetNetwork(globals.IsMainnet())
 	walletInfo := getWalletInfo(wallet)
 	return mapReturn(walletInfo, nil)
 }
@@ -112,6 +114,7 @@ func RecoverWalletFromHexSeed(this js.Value, args []js.Value) interface{} {
 		return mapReturn(nil, err)
 	}
 
+	wallet.SetNetwork(globals.IsMainnet())
 	walletInfo := getWalletInfo(wallet)
 	return mapReturn(walletInfo, nil)
 }
@@ -125,6 +128,7 @@ func RecoverWalletFromDisk(this js.Value, args []js.Value) interface{} {
 		return mapReturn(nil, err)
 	}
 
+	wallet.SetNetwork(globals.IsMainnet())
 	walletInfo := getWalletInfo(wallet)
 	return mapReturn(walletInfo, nil)
 }
@@ -527,12 +531,10 @@ func Initialize(this js.Value, args []js.Value) interface{} {
 	switch env {
 	case "mainnet":
 		globals.Config = config.Mainnet
-		break
 	case "testnet":
 	case "simulator":
 	case "development":
 		globals.Config = config.Testnet
-		break
 	default:
 		return mapReturn(nil, fmt.Errorf("env [%s] does not exists.", env))
 	}
