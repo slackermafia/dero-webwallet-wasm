@@ -24,6 +24,7 @@ import (
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi"
 	"github.com/deroproject/derohe/walletapi/mnemonics"
+	"github.com/g45t345rt/dero-webwallet-wasm/fastreg"
 )
 
 //go:embed lookuptable
@@ -197,6 +198,51 @@ func walletSign(w *walletapi.Wallet_Memory) (c, s *big.Int) {
 	s = s.Mod(s, bn256.Order)
 
 	return
+}
+
+func FastRegister(this js.Value, args []js.Value) interface{} {
+	workerKey := args[0].String()
+	hashRate := 0
+	count := 0
+
+	status := map[string]interface{}{
+		`hr`: 0,   // hashrate
+		`c`:  0,   // hastcount
+		`tx`: nil, // registration payload (id and hex)
+	}
+	js.Global().Set("RegistrationStatus_"+workerKey, status)
+
+	start := time.Now()
+	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		go fastreg.Search(
+			func() {
+				count++
+				hashRate++
+
+				if time.Now().Add(-1 * time.Second).After(start) {
+					status[`hr`] = hashRate
+					status[`c`] = count
+
+					start = time.Now()
+					hashRate = 0
+					js.Global().Set("RegistrationStatus_"+workerKey, status)
+				}
+			}, func(tx *transaction.Transaction, secret *big.Int) {
+				addr, _ := rpc.NewAddressFromCompressedKeys(tx.MinerAddress[:])
+				wordSeed := mnemonics.Key_To_Words(secret, "english")
+
+				status[`tx`] = map[string]interface{}{
+					"txId":     tx.GetHash().String(),
+					"txHex":    hex.EncodeToString(tx.Serialize()),
+					"addr":     addr.String(),
+					"wordSeed": wordSeed,
+					"hexSeed":  secret.Text(16),
+				}
+				js.Global().Set("RegistrationStatus_"+workerKey, status)
+			})
+	}
+
+	return mapReturn(nil, nil)
 }
 
 func WalletRegister(this js.Value, args []js.Value) interface{} {
@@ -638,6 +684,7 @@ func main() {
 	js.Global().Set("DaemonSetAddress", js.FuncOf(DaemonSetAddress))
 	js.Global().Set("DaemonCall", js.FuncOf(DaemonCall))
 	js.Global().Set("DaemonGetTopoHeight", js.FuncOf(DaemonGetTopoHeight))
+	js.Global().Set("FastRegister", js.FuncOf(FastRegister)) // fast register by pieswap
 
 	// prevent function from returning, required for wasm module
 	select {}

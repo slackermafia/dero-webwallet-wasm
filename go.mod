@@ -6,6 +6,8 @@ go 1.18
 
 require github.com/deroproject/derohe v0.0.0-20221027103319-358fab62bdf4
 
+require github.com/deroholic/derogo v0.0.0-20221022214824-8b7563dfd841 // indirect
+
 require (
 	github.com/VictoriaMetrics/metrics v1.23.0 // indirect
 	github.com/beevik/ntp v0.3.0 // indirect
@@ -21,6 +23,7 @@ require (
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
+	github.com/g45t345rt/dero-fastreg v0.0.0-20221128195928-880dac4a7dc6
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -41,8 +44,8 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/crypto v0.3.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/time v0.2.0 // indirect
