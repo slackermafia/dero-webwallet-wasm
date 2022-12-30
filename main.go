@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"os"
 	"runtime"
+	"strings"
 	"syscall/js"
 	"time"
 
@@ -476,7 +477,7 @@ func WalletTransfer(this js.Value, args []js.Value) interface{} {
 func WalletSendTransaction(this js.Value, args []js.Value) interface{} {
 	asyncKey := args[0].String()
 	walletKey := args[1].String()
-	txHex := args[2].String()
+	txHex := strings.TrimSpace(args[2].String())
 
 	walletInstance, err := getWallet(walletKey)
 	if err != nil {
