@@ -1,6 +1,6 @@
-replace github.com/deroproject/derohe => github.com/g45t345rt/derohe v0.0.0-20221111221822-76ab16df5374
+replace github.com/deroproject/derohe => github.com/slackermafia/derohe latest
 
-module github.com/g45t345rt/dero-webwallet-wasm
+module github.com/slackermafia/dero-webwallet-wasm
 
 go 1.18
 
