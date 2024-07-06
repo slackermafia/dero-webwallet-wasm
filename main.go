@@ -23,10 +23,9 @@ import (
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
-	"github.com/deroproject/derohe/walletapi"
+	"github.com/slackermafia/derohe/walletapi" //TO DO swap out walletAPI with custom bugfixes
 	"github.com/deroproject/derohe/walletapi/mnemonics"
-	"github.com/g45t345rt/dero-webwallet-wasm/fastreg"
-)
+	"github.com/slackermafia/dero-webwallet-wasm/fastreg"
 
 //go:embed lookuptable
 var LOOKUP_TABLE []byte
